@@ -29,42 +29,93 @@ function preload() {
 }
 
 let cody
+const pulses = []
 
 function setup() {
     createCanvas(640, 360)
     colorMode(HSB, 360, 100, 100, 100)
+    frameRate(60)
 
-    cody = new Soundpulse(width/2, height/2)
+    cody = new Speaker(width/2, height/2)
+    cody.vel = new p5.Vector()
 }
 
 
 function draw() {
     background(234, 34, 24)
 
+    cody.pos.x = 150 * cos(TAU/200*frameCount) + width/2
+    cody.pos.y = 150 * sin(TAU/200*frameCount) + height/2
     cody.update()
     cody.render()
 }
 
 
+class Speaker {
+    constructor(x, y) {
+        this.pos = new p5.Vector(x, y)
+        this.vel = p5.Vector.random2D().mult(random(0.5))
+        this.acc = new p5.Vector()
+
+        this.pulses = []
+    }
+
+    update() {
+        this.vel.add(this.acc)
+        this.pos.add(this.vel)
+        this.acc.mult(0)
+
+        if (frameCount % 1 === 0)
+            this.pulses.push(new Soundpulse(this.pos.x, this.pos.y))
+
+        for (let i=0; i<this.pulses.length; i++) {
+            let p = this.pulses[i]
+            p.update()
+            if (p.expired)
+                this.pulses.splice(1, i)
+        }
+
+        console.log(this.pulses.length)
+    }
+
+    render() {
+        fill(0, 0, 100, 50)
+        strokeWeight(1)
+        stroke(0, 0, 100)
+        square(this.pos.x, this.pos.y, 5)
+
+        this.pulses.forEach(p => p.render())
+    }
+}
+
 
 class Soundpulse {
     constructor(x, y) {
         this.pos = new p5.Vector(x, y)
+        this.MAXLIFE = 360
 
         // we don't want the circle to stop growing on-screen
-        this.lifetime = width
+        this.lifetime = this.MAXLIFE
         this.expired = false
     }
 
     update() {
-        this.lifetime -= 1
+        this.lifetime -= 2.5
         if (this.lifetime <= 0)
             this.expired = true
     }
 
     render() {
         noFill()
-        stroke(0, 0, 100, 20)
-        circle(this.pos.x, this.pos.y, (width - this.lifetime)*2)
+        stroke(this.pos.x % 360, 100, 100,
+            map(this.lifetime, 0, this.MAXLIFE, 0, 100))
+        circle(this.pos.x, this.pos.y, (this.MAXLIFE - this.lifetime)*2)
+
+        // point(this.pos.x, this.pos.y)
     }
+}
+
+
+function mousePressed() {
+    noLoop()
 }
