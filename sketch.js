@@ -14,13 +14,13 @@ coding plan:
 .   expanding circle with lifetime
     .   update ➜ lifetime increase
     .   r ➜ gets bigger
-    emitter is a particle with pos, vel, acc
+    , emitter is a particle with pos, vel, acc
         edges
-    emitter makes many circles with some period
-    remove -pulses that have expired
-
-
+    . emitter makes many circles with some period
+    . remove -pulses that have expired
  */
+
+
 let font
 
 
@@ -28,8 +28,10 @@ function preload() {
     font = loadFont('fonts/Meiryo-01.ttf')
 }
 
+
 let cody
-const pulses = []
+const pulses = [] // these are sound waves. circles that expand with time
+
 
 function setup() {
     createCanvas(640, 360)
@@ -44,6 +46,7 @@ function setup() {
 function draw() {
     background(234, 34, 24)
 
+    // have our emitter / speaker move in a circle
     cody.pos.x = 150 * cos(TAU/200*frameCount) + width/2
     cody.pos.y = 150 * sin(TAU/200*frameCount) + height/2
     cody.update()
@@ -51,6 +54,10 @@ function draw() {
 }
 
 
+/*
+    A speaker is a particle emitter. In this case, it emits sound waves as
+    Soundpulse objects
+ */
 class Speaker {
     constructor(x, y) {
         this.pos = new p5.Vector(x, y)
@@ -65,9 +72,12 @@ class Speaker {
         this.pos.add(this.vel)
         this.acc.mult(0)
 
-        if (frameCount % 1 === 0)
+        let n = 1
+        // every n frames, we add a new pulse to our pulses
+        if (frameCount % n === 0)
             this.pulses.push(new Soundpulse(this.pos.x, this.pos.y))
 
+        // remove pulses that have exceeded their lifetime!
         for (let i=0; i<this.pulses.length; i++) {
             let p = this.pulses[i]
             p.update()
@@ -89,6 +99,9 @@ class Speaker {
 }
 
 
+/*
+    A single sound wave in the form of an expanding circle
+ */
 class Soundpulse {
     constructor(x, y) {
         this.pos = new p5.Vector(x, y)
